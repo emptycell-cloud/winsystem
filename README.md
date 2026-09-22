@@ -1,9 +1,5 @@
 # WinSystem · 企业级一体化管理系统
 
-[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Platform](https://img.shields.io/badge/platform-Windows-blue)](#)
-[![Stack](https://img.shields.io/badge/stack-WPF%20%2B%20ASP.NET%20Core-green)](#)
-
 WinSystem 是一款基于 **WPF (MVVM) + ASP.NET Core WebAPI + MySQL** 的企业级一体化管理系统。
 它覆盖组织架构、用户角色、权限菜单、消息通知、日程管理与操作审计等核心管理场景，
 以现代化界面与纵深防御设计，为企业提供统一、可信的管理中枢。
@@ -109,7 +105,7 @@ CREATE DATABASE `winsystem` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_a
 2. 导入数据库结构 / 初始数据（请选用最新备份）：
 
 ```
-mysql -u root -p winsystem < backups/winsystem_20260922_134620.sql
+mysql -u root -p winsystem < backups/winsystem.sql
 ```
 
 ### 2. 配置服务端 `WinSystem.Api`
