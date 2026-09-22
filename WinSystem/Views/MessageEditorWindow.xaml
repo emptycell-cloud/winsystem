@@ -1,0 +1,195 @@
+<Window x:Class="WinSystem.Views.MessageEditorWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="clr-namespace:WinSystem.ViewModels"
+        Title="消息编辑" Width="720" SizeToContent="Height"
+        WindowStyle="None" AllowsTransparency="True" Background="Transparent"
+        ResizeMode="NoResize" FontFamily="{StaticResource DefaultFont}"
+        MouseLeftButtonDown="Window_MouseLeftButtonDown"
+        PreviewKeyDown="Window_PreviewKeyDown">
+    <Border Background="White" CornerRadius="14" Padding="26" Margin="10"
+            BorderBrush="{StaticResource BorderBrush}" BorderThickness="1">
+        <Border.Effect>
+            <DropShadowEffect BlurRadius="30" ShadowDepth="4" Opacity="0.20" Direction="270"/>
+        </Border.Effect>
+        <StackPanel>
+            <TextBlock Text="{Binding Title}" FontSize="20" FontWeight="SemiBold"
+                       Foreground="{StaticResource TextPrimaryBrush}"/>
+            <Rectangle Height="1" Margin="-12,14,-12,0" Fill="{StaticResource DividerBrush}"/>
+
+            <Grid Margin="0,18,0,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="24"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <!-- 第1行：标题 -->
+                <StackPanel Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3">
+                    <TextBlock Text="消息标题" Style="{StaticResource FieldLabel}"/>
+                    <TextBox Text="{Binding MessageTitle, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource TextField}"/>
+                </StackPanel>
+
+                <!-- 第2行：类型 / 状态 / 发布范围 -->
+                <StackPanel Grid.Row="1" Grid.Column="0" Margin="0,14,0,0">
+                    <TextBlock Text="消息类型" Style="{StaticResource FieldLabel}"/>
+                    <ComboBox ItemsSource="{x:Static vm:MessageEditorViewModel.TypeOptions}"
+                              SelectedItem="{Binding Type}" Style="{StaticResource ComboBoxStyle}"
+                              ItemContainerStyle="{StaticResource ComboBoxItemStyle}" MinHeight="36"/>
+                </StackPanel>
+                <StackPanel Grid.Row="1" Grid.Column="2" Margin="0,14,0,0">
+                    <TextBlock Text="状态" Style="{StaticResource FieldLabel}"/>
+                    <ComboBox ItemsSource="{x:Static vm:MessageEditorViewModel.StatusOptions}"
+                              SelectedItem="{Binding Status}" Style="{StaticResource ComboBoxStyle}"
+                              ItemContainerStyle="{StaticResource ComboBoxItemStyle}" MinHeight="36"/>
+                </StackPanel>
+            </Grid>
+
+            <!-- 第3行：发布范围 + 目标选择 -->
+            <Grid Margin="0,14,0,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="24"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <StackPanel Grid.Column="0">
+                    <TextBlock Text="发布范围" Style="{StaticResource FieldLabel}"/>
+                    <ComboBox ItemsSource="{x:Static vm:MessageEditorViewModel.ScopeOptions}"
+                              SelectedItem="{Binding Scope}" Style="{StaticResource ComboBoxStyle}"
+                              ItemContainerStyle="{StaticResource ComboBoxItemStyle}" MinHeight="36"/>
+                </StackPanel>
+                <StackPanel Grid.Column="2">
+                    <TextBlock Text="范围目标" Style="{StaticResource FieldLabel}"/>
+                    <TextBlock Text="{Binding TargetHint}" FontSize="12"
+                               Foreground="{StaticResource TextSecondaryBrush}" Margin="0,6,0,6"/>
+                    <Border Background="#FAFBFE" BorderBrush="{StaticResource DividerBrush}" BorderThickness="1"
+                            CornerRadius="{StaticResource SmallRadius}" Padding="6"
+                            Visibility="{Binding HasTargets, Converter={StaticResource BoolToVisibility}}">
+                        <Grid>
+                            <!-- 扁平勾选列表（角色） -->
+                            <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="4" MaxHeight="190"
+                                          Visibility="{Binding HasFlatTargets, Converter={StaticResource BoolToVisibility}}">
+                                <ItemsControl ItemsSource="{Binding TargetItems}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <CheckBox Content="{Binding Name}" IsChecked="{Binding IsSelected}"
+                                                      FontSize="13" Foreground="{StaticResource TextPrimaryBrush}"
+                                                      Margin="4,5" VerticalAlignment="Center"/>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </ScrollViewer>
+
+                            <!-- 部门树（带复选框，勾选父节点级联子节点） -->
+                            <TreeView ItemsSource="{Binding TargetItems}" Background="Transparent" BorderThickness="0"
+                                      FontFamily="{StaticResource DefaultFont}" Padding="4" MaxHeight="190"
+                                      Visibility="{Binding HasTreeTargets, Converter={StaticResource BoolToVisibility}}">
+                                <TreeView.Resources>
+                                    <HierarchicalDataTemplate DataType="{x:Type vm:TargetTreeNode}" ItemsSource="{Binding Children}">
+                                        <CheckBox Content="{Binding Name}" IsChecked="{Binding IsSelected}"
+                                                  FontSize="13" Foreground="{StaticResource TextPrimaryBrush}"
+                                                  Margin="2,4" VerticalAlignment="Center"/>
+                                    </HierarchicalDataTemplate>
+                                </TreeView.Resources>
+                                <TreeView.ItemContainerStyle>
+                                    <Style TargetType="{x:Type TreeViewItem}">
+                                        <Setter Property="IsExpanded" Value="True"/>
+                                    </Style>
+                                </TreeView.ItemContainerStyle>
+                            </TreeView>
+
+                            <!-- 用户搜索选择器（按姓名/账号搜索勾选，避免全量加载） -->
+                            <StackPanel Visibility="{Binding HasUserPicker, Converter={StaticResource BoolToVisibility}}">
+                                <DockPanel Margin="4,2,4,6">
+                                    <Button DockPanel.Dock="Right" Content="搜索" Margin="6,0,0,0"
+                                            Command="{Binding SearchUsersCommand}" Style="{StaticResource PrimaryButton}"
+                                            Padding="14,6" FontSize="12.5" MinWidth="56"/>
+                                    <TextBox Text="{Binding SearchKeyword, UpdateSourceTrigger=PropertyChanged}"
+                                             Style="{StaticResource SearchBox}" MinHeight="28"/>
+                                </DockPanel>
+
+                                <Border Background="White" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1"
+                                        CornerRadius="{StaticResource SmallRadius}" Padding="6" MaxHeight="110">
+                                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                                        <ItemsControl ItemsSource="{Binding SearchResults}">
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate>
+                                                    <CheckBox Content="{Binding Display}" IsChecked="{Binding IsSelected}"
+                                                              FontSize="12.5" Foreground="{StaticResource TextPrimaryBrush}"
+                                                              Margin="2,3" VerticalAlignment="Center"/>
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+                                    </ScrollViewer>
+                                </Border>
+
+                                <TextBlock Text="已选用户" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}"
+                                           Margin="4,8,0,4"/>
+                                <Border Background="White" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1"
+                                        CornerRadius="{StaticResource SmallRadius}" Padding="8" MaxHeight="110">
+                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                                        <ItemsControl ItemsSource="{Binding SelectedUsers}">
+                                            <ItemsControl.ItemsPanel>
+                                                <ItemsPanelTemplate>
+                                                    <WrapPanel/>
+                                                </ItemsPanelTemplate>
+                                            </ItemsControl.ItemsPanel>
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate>
+                                                    <Border Background="#EEF3FF" CornerRadius="12" Padding="10,4" Margin="0,2,6,2">
+                                                        <StackPanel Orientation="Horizontal">
+                                                            <TextBlock Text="{Binding TargetName}" FontSize="12.5"
+                                                                       Foreground="{StaticResource PrimaryDarkBrush}" VerticalAlignment="Center"/>
+                                                            <Button Content="✕" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}"
+                                                                    Background="Transparent" BorderThickness="0" Padding="4,0" Cursor="Hand"
+                                                                    Margin="6,0,-4,0" VerticalAlignment="Center"
+                                                                    Command="{Binding DataContext.RemoveSelectedUserCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                                    CommandParameter="{Binding}"/>
+                                                        </StackPanel>
+                                                    </Border>
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+                                    </ScrollViewer>
+                                </Border>
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+                </StackPanel>
+            </Grid>
+
+            <!-- 内容 -->
+            <StackPanel Margin="0,14,0,0">
+                <TextBlock Text="消息内容" Style="{StaticResource FieldLabel}"/>
+                <TextBox Text="{Binding Content, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource TextField}"
+                         Height="120" AcceptsReturn="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto"/>
+            </StackPanel>
+
+            <!-- 备注 -->
+            <StackPanel Margin="0,14,0,0">
+                <TextBlock Text="备注" Style="{StaticResource FieldLabel}"/>
+                <TextBox Text="{Binding Remark}" Style="{StaticResource TextField}"/>
+            </StackPanel>
+
+            <TextBlock Text="{Binding Message}" Foreground="{StaticResource DangerBrush}"
+                       FontSize="13" Margin="0,10,0,0"
+                       Visibility="{Binding Message, Converter={StaticResource EmptyToVisibility}}"/>
+
+            <Grid Margin="0,24,0,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="10"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <Button Grid.Column="1" Content="取消" Style="{StaticResource SecondaryButton}" Width="92" Click="Cancel_Click" IsCancel="True"/>
+                <Button Grid.Column="3" Content="确定" Style="{StaticResource PrimaryButton}" Width="92" Click="Ok_Click" IsDefault="True"/>
+            </Grid>
+        </StackPanel>
+    </Border>
+</Window>

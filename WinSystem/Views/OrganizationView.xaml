@@ -1,0 +1,253 @@
+<UserControl x:Class="WinSystem.Views.OrganizationView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:m="clr-namespace:WinSystem.Models">
+    <UserControl.Resources>
+        <!-- 组织树节点模板 -->
+        <HierarchicalDataTemplate DataType="{x:Type m:Organization}" ItemsSource="{Binding Children}">
+            <TextBlock Text="{Binding Name}" FontSize="13" Margin="2,3"
+                       Foreground="{StaticResource TextPrimaryBrush}"/>
+        </HierarchicalDataTemplate>
+
+        <!-- 类型标签 -->
+        <DataTemplate x:Key="TypeTagTemplate">
+            <Border Style="{StaticResource StatusTag}" Background="#EEF3FF">
+                <TextBlock Text="{Binding TypeText}" FontSize="12" FontWeight="SemiBold"
+                           Foreground="{StaticResource PrimaryDarkBrush}"/>
+            </Border>
+        </DataTemplate>
+
+        <!-- 详情条目：分组卡片内的字段项 -->
+        <Style x:Key="DetailItem" TargetType="{x:Type StackPanel}">
+            <Setter Property="Margin" Value="0,0,0,14"/>
+        </Style>
+
+        <!-- 字段标签 -->
+        <Style x:Key="FieldCaption" TargetType="{x:Type TextBlock}">
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Foreground" Value="{StaticResource TextMutedBrush}"/>
+        </Style>
+
+        <!-- 字段值 -->
+        <Style x:Key="FieldValue" TargetType="{x:Type TextBlock}">
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+            <Setter Property="Margin" Value="0,4,0,0"/>
+            <Setter Property="TextWrapping" Value="Wrap"/>
+        </Style>
+
+        <!-- 详情分组卡片 -->
+        <Style x:Key="DetailCard" TargetType="{x:Type Border}">
+            <Setter Property="Background" Value="{StaticResource CardBackgroundBrush}"/>
+            <Setter Property="CornerRadius" Value="{StaticResource MediumRadius}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="20"/>
+        </Style>
+    </UserControl.Resources>
+
+    <Grid Margin="26,22,26,26">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- 页头 -->
+        <Grid Grid.Row="0">
+            <StackPanel>
+                <TextBlock Text="组织机构" Style="{StaticResource PageTitle}"/>
+                <TextBlock Text="左侧选择组织，右侧查看详细信息" Style="{StaticResource PageSubtitle}"/>
+            </StackPanel>
+            <Button Content="＋  新增组织" Style="{StaticResource PrimaryButton}" HorizontalAlignment="Right"
+                    VerticalAlignment="Center" Command="{Binding AddCommand}"/>
+        </Grid>
+
+        <!-- 内容区：左树 + 右详情 -->
+        <Grid Grid.Row="1" Margin="0,18,0,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="300"/>
+                <ColumnDefinition Width="20"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- 左：组织树 -->
+            <Border Grid.Column="0" Style="{StaticResource Card}" Padding="0">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    <Border Background="Transparent" BorderBrush="{StaticResource DividerBrush}"
+                            BorderThickness="0,0,0,1" Padding="16,12">
+                        <TextBlock Text="组织架构" FontSize="14" FontWeight="SemiBold"
+                                   Foreground="{StaticResource TextPrimaryBrush}"/>
+                    </Border>
+                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Padding="8,6">
+                        <TreeView x:Name="OrgTree" ItemsSource="{Binding Organizations}"
+                                  SelectedItemChanged="OrgTree_SelectedItemChanged"
+                                  Background="Transparent" BorderThickness="0"
+                                  FontFamily="{StaticResource DefaultFont}"/>
+                    </ScrollViewer>
+                </Grid>
+            </Border>
+
+            <!-- 右：详情 -->
+            <Border Grid.Column="2" Style="{StaticResource Card}" Padding="0">
+                <Grid>
+                    <!-- 空态提示 -->
+                    <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center"
+                                DataContext="{Binding SelectedOrganization}">
+                        <StackPanel.Style>
+                            <Style TargetType="{x:Type StackPanel}">
+                                <Setter Property="Visibility" Value="Collapsed"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding}" Value="{x:Null}">
+                                        <Setter Property="Visibility" Value="Visible"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </StackPanel.Style>
+                        <TextBlock Text="请在左侧选择组织" FontSize="15" Foreground="{StaticResource TextSecondaryBrush}"
+                                   HorizontalAlignment="Center" Margin="0,0,0,8"/>
+                        <TextBlock Text="点击树形目录中的节点，查看该组织的详细信息"
+                                   FontSize="12" Foreground="{StaticResource TextMutedBrush}" HorizontalAlignment="Center"/>
+                    </StackPanel>
+
+                    <!-- 详情内容 -->
+                    <ContentControl DataContext="{Binding SelectedOrganization}">
+                        <ContentControl.Style>
+                            <Style TargetType="{x:Type ContentControl}">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding}" Value="{x:Null}">
+                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </ContentControl.Style>
+
+                        <Grid Margin="24,24,24,22">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+
+                            <!-- 头部横幅：名称 + 标签 -->
+                            <Border Grid.Row="0" Background="{StaticResource PrimaryGradientBrush}"
+                                    CornerRadius="{StaticResource LargeRadius}" Padding="22,18">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Border Grid.Column="0" Width="52" Height="52" CornerRadius="26"
+                                            Background="#2AFFFFFF" VerticalAlignment="Center">
+                                        <TextBlock Text="组" FontSize="22" FontWeight="Bold" Foreground="White"
+                                                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                    <StackPanel Grid.Column="1" Margin="16,0,0,0" VerticalAlignment="Center">
+                                        <TextBlock Text="{Binding Name}" FontSize="20" FontWeight="SemiBold"
+                                                   Foreground="White" TextTrimming="CharacterEllipsis"/>
+                                        <TextBlock Text="组织详细资料" FontSize="12" Foreground="#D8DEFF" Margin="0,4,0,0"/>
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                                        <ContentControl ContentTemplate="{StaticResource TypeTagTemplate}" Content="{Binding}"/>
+                                    </StackPanel>
+                                </Grid>
+                            </Border>
+
+                            <!-- 主体：分组卡片 -->
+                            <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Margin="0,20,0,0">
+                                <StackPanel>
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="16"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+
+                                        <!-- 基本信息 -->
+                                        <Border Grid.Column="0" Style="{StaticResource DetailCard}">
+                                            <StackPanel>
+                                                <TextBlock Text="基本信息" FontSize="14" FontWeight="SemiBold"
+                                                           Foreground="{StaticResource PrimaryDarkBrush}" Margin="0,0,0,16"/>
+                                                <StackPanel Style="{StaticResource DetailItem}">
+                                                    <TextBlock Text="组织ID" Style="{StaticResource FieldCaption}"/>
+                                                    <TextBlock Text="{Binding Id}" Style="{StaticResource FieldValue}"/>
+                                                </StackPanel>
+                                                <StackPanel Style="{StaticResource DetailItem}">
+                                                    <TextBlock Text="组织编码" Style="{StaticResource FieldCaption}"/>
+                                                    <TextBlock Text="{Binding Code}" Style="{StaticResource FieldValue}"/>
+                                                </StackPanel>
+                                                <StackPanel Style="{StaticResource DetailItem}">
+                                                    <TextBlock Text="上级组织" Style="{StaticResource FieldCaption}"/>
+                                                    <TextBlock Text="{Binding ParentName}" Style="{StaticResource FieldValue}"/>
+                                                </StackPanel>
+                                                <StackPanel Style="{StaticResource DetailItem}">
+                                                    <TextBlock Text="类型" Style="{StaticResource FieldCaption}"/>
+                                                    <TextBlock Text="{Binding TypeText}" Style="{StaticResource FieldValue}"/>
+                                                </StackPanel>
+                                                <StackPanel Style="{StaticResource DetailItem}">
+                                                    <TextBlock Text="排序号" Style="{StaticResource FieldCaption}"/>
+                                                    <TextBlock Text="{Binding SortOrder}" Style="{StaticResource FieldValue}"/>
+                                                </StackPanel>
+                                                <StackPanel Style="{StaticResource DetailItem}">
+                                                    <TextBlock Text="状态" Style="{StaticResource FieldCaption}"/>
+                                                    <TextBlock Text="{Binding StatusText}" Style="{StaticResource FieldValue}"/>
+                                                </StackPanel>
+                                                <StackPanel Margin="0">
+                                                    <TextBlock Text="创建时间" Style="{StaticResource FieldCaption}"/>
+                                                    <TextBlock Text="{Binding CreatedAt, StringFormat=yyyy-MM-dd}" Style="{StaticResource FieldValue}"/>
+                                                </StackPanel>
+                                            </StackPanel>
+                                        </Border>
+
+                                        <!-- 联系信息 -->
+                                        <Border Grid.Column="2" Style="{StaticResource DetailCard}">
+                                            <StackPanel>
+                                                <TextBlock Text="联系信息" FontSize="14" FontWeight="SemiBold"
+                                                           Foreground="{StaticResource PrimaryDarkBrush}" Margin="0,0,0,16"/>
+                                                <StackPanel Style="{StaticResource DetailItem}">
+                                                    <TextBlock Text="负责人" Style="{StaticResource FieldCaption}"/>
+                                                    <TextBlock Text="{Binding Manager}" Style="{StaticResource FieldValue}"/>
+                                                </StackPanel>
+                                                <StackPanel Style="{StaticResource DetailItem}">
+                                                    <TextBlock Text="邮箱" Style="{StaticResource FieldCaption}"/>
+                                                    <TextBlock Text="{Binding Email}" Style="{StaticResource FieldValue}"/>
+                                                </StackPanel>
+                                                <StackPanel Margin="0">
+                                                    <TextBlock Text="联系电话" Style="{StaticResource FieldCaption}"/>
+                                                    <TextBlock Text="{Binding Phone}" Style="{StaticResource FieldValue}"/>
+                                                </StackPanel>
+                                            </StackPanel>
+                                        </Border>
+                                    </Grid>
+
+                                    <!-- 描述 -->
+                                    <Border Grid.Row="1" Style="{StaticResource DetailCard}" Margin="0,16,0,0">
+                                        <StackPanel>
+                                            <TextBlock Text="描述" FontSize="14" FontWeight="SemiBold"
+                                                       Foreground="{StaticResource PrimaryDarkBrush}" Margin="0,0,0,16"/>
+                                            <TextBlock Text="{Binding Description}" Style="{StaticResource FieldValue}"
+                                                       HorizontalAlignment="Left"/>
+                                        </StackPanel>
+                                    </Border>
+                                </StackPanel>
+                            </ScrollViewer>
+
+                            <!-- 操作按钮 -->
+                            <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right"
+                                        Margin="0,20,0,0">
+                                <Button Content="编辑" Style="{StaticResource PrimaryButton}" Width="92"
+                                        Command="{Binding DataContext.EditSelectedCommand, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}}"/>
+                                <Button Content="删除" Style="{StaticResource DangerButton}" Width="92" Margin="10,0,0,0"
+                                        Command="{Binding DataContext.DeleteSelectedCommand, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}}"/>
+                            </StackPanel>
+                        </Grid>
+                    </ContentControl>
+                </Grid>
+            </Border>
+        </Grid>
+    </Grid>
+</UserControl>

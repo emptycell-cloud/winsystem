@@ -1,0 +1,16 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:c="clr-namespace:WinSystem.Converters">
+
+    <c:StatusToBrushConverter x:Key="StatusToBrush"/>
+    <c:StatusToTagConverter x:Key="StatusToTag"/>
+    <c:InverseBoolToVisibilityConverter x:Key="InverseBoolToVisibility"/>
+    <c:BoolToVisibilityConverter x:Key="BoolToVisibility"/>
+    <c:EmptyToVisibilityConverter x:Key="EmptyToVisibility"/>
+    <c:CurrencyConverter x:Key="Currency"/>
+    <c:PercentToWidthConverter x:Key="PercentToWidth"/>
+    <c:NamedBrushConverter x:Key="NamedBrush"/>
+    <c:InitialConverter x:Key="InitialConverter"/>
+    <c:HexToBrushConverter x:Key="HexToBrush"/>
+
+</ResourceDictionary>

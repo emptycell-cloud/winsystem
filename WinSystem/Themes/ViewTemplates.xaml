@@ -1,0 +1,26 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:vm="clr-namespace:WinSystem.ViewModels"
+                    xmlns:views="clr-namespace:WinSystem.Views">
+
+    <!-- 用 ViewModel 类型隐式映射到对应 View，供主内容区切换页面 -->
+    <DataTemplate DataType="{x:Type vm:DashboardViewModel}">
+        <views:DashboardView/>
+    </DataTemplate>
+    <DataTemplate DataType="{x:Type vm:UserViewModel}">
+        <views:UserView/>
+    </DataTemplate>
+    <DataTemplate DataType="{x:Type vm:ProductViewModel}">
+        <views:ProductView/>
+    </DataTemplate>
+    <DataTemplate DataType="{x:Type vm:OrderViewModel}">
+        <views:OrderView/>
+    </DataTemplate>
+    <DataTemplate DataType="{x:Type vm:SettingsViewModel}">
+        <views:SettingsView/>
+    </DataTemplate>
+    <DataTemplate DataType="{x:Type vm:MenuViewModel}">
+        <views:MenuView/>
+    </DataTemplate>
+
+</ResourceDictionary>
