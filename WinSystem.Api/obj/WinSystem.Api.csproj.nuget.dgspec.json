@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "d:\\trae_projects\\winsystem\\WinSystem.Api\\WinSystem.Api.csproj": {}
+    "D:\\trae_projects\\winsystem\\WinSystem.Api\\WinSystem.Api.csproj": {}
   },
   "projects": {
-    "d:\\trae_projects\\winsystem\\WinSystem.Api\\WinSystem.Api.csproj": {
+    "D:\\trae_projects\\winsystem\\WinSystem.Api\\WinSystem.Api.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "d:\\trae_projects\\winsystem\\WinSystem.Api\\WinSystem.Api.csproj",
+        "projectUniqueName": "D:\\trae_projects\\winsystem\\WinSystem.Api\\WinSystem.Api.csproj",
         "projectName": "WinSystem.Api",
-        "projectPath": "d:\\trae_projects\\winsystem\\WinSystem.Api\\WinSystem.Api.csproj",
+        "projectPath": "D:\\trae_projects\\winsystem\\WinSystem.Api\\WinSystem.Api.csproj",
         "packagesPath": "C:\\Users\\dongs\\.nuget\\packages\\",
-        "outputPath": "d:\\trae_projects\\winsystem\\WinSystem.Api\\obj\\",
+        "outputPath": "D:\\trae_projects\\winsystem\\WinSystem.Api\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"

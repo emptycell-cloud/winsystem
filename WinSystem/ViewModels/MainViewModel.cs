@@ -26,6 +26,7 @@ namespace WinSystem.ViewModels
         {
             Current = this;
             Dashboard = new DashboardViewModel();
+            Dashboard.OpenSchedule = OpenScheduleModule;
             Users = new UserViewModel();
             Products = new ProductViewModel();
             Orders = new OrderViewModel();
@@ -247,7 +248,7 @@ namespace WinSystem.ViewModels
             biz.Children.Add(new NavItem { Title = "商品管理", IconData = DashboardViewModel.Icons.Box, PageKey = "Products" });
             biz.Children.Add(new NavItem { Title = "订单管理", IconData = DashboardViewModel.Icons.Order, PageKey = "Orders" });
 
-            MenuItems.Add(new NavItem { Title = "数据中心", IconData = DashboardViewModel.Icons.Dashboard, PageKey = "Dashboard" });
+            MenuItems.Add(new NavItem { Title = "工作台", IconData = DashboardViewModel.Icons.Dashboard, PageKey = "Dashboard" });
             MenuItems.Add(biz);
             MenuItems.Add(new NavItem { Title = "系统设置", IconData = DashboardViewModel.Icons.Settings, PageKey = "Settings" });
         }
@@ -285,7 +286,7 @@ namespace WinSystem.ViewModels
             {
                 tab = key switch
                 {
-                    "Dashboard" => new WorkTab("Dashboard", "数据中心", Dashboard, false),
+                    "Dashboard" => new WorkTab("Dashboard", "工作台", Dashboard, false),
                     "Users" => new WorkTab("Users", "用户管理", Users, true, t => CloseTab(t)),
                     "Products" => new WorkTab("Products", "商品管理", Products, true, t => CloseTab(t)),
                     "Orders" => new WorkTab("Orders", "订单管理", Orders, true, t => CloseTab(t)),
@@ -299,6 +300,17 @@ namespace WinSystem.ViewModels
 
             Tabs.Add(tab);
             Activate(tab);
+        }
+
+        /// <summary>工作台点击某条日程：打开日程管理模块并定位到该日程的日期。</summary>
+        private void OpenScheduleModule(SysSchedule? schedule)
+        {
+            OpenTab("/Views/ScheduleView.xaml");
+            if (schedule == null) return;
+
+            if (Tabs.FirstOrDefault(t => t.PageKey == "/Views/ScheduleView.xaml")?.Content is FrameworkElement fe &&
+                fe.DataContext is ScheduleViewModel svm)
+                svm.NavigateTo(schedule.ScheduleDate);
         }
 
         /// <summary>根据 sys_menu.path（形如 /Views/MenuView.xaml）动态创建选项卡：
@@ -403,6 +415,11 @@ namespace WinSystem.ViewModels
             if (tab.PageKey == "Menus")
             {
                 _ = RefreshMenusAsync();
+            }
+            // 激活工作台时重新拉取日程统计（工作台 Content 是 ViewModel，走显式分支）
+            if (tab.PageKey == "Dashboard")
+            {
+                _ = Dashboard.ReloadAsync();
             }
         }
 

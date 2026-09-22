@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "d:\\trae_projects\\winsystem\\WinSystem\\WinSystem.csproj": {}
+    "D:\\trae_projects\\winsystem\\WinSystem\\WinSystem.csproj": {}
   },
   "projects": {
-    "d:\\trae_projects\\winsystem\\WinSystem\\WinSystem.csproj": {
+    "D:\\trae_projects\\winsystem\\WinSystem\\WinSystem.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "d:\\trae_projects\\winsystem\\WinSystem\\WinSystem.csproj",
+        "projectUniqueName": "D:\\trae_projects\\winsystem\\WinSystem\\WinSystem.csproj",
         "projectName": "WinSystem",
-        "projectPath": "d:\\trae_projects\\winsystem\\WinSystem\\WinSystem.csproj",
+        "projectPath": "D:\\trae_projects\\winsystem\\WinSystem\\WinSystem.csproj",
         "packagesPath": "C:\\Users\\dongs\\.nuget\\packages\\",
-        "outputPath": "d:\\trae_projects\\winsystem\\WinSystem\\obj\\",
+        "outputPath": "D:\\trae_projects\\winsystem\\WinSystem\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"

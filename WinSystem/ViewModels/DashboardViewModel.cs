@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using WinSystem.Commands;
 using WinSystem.Models;
 using WinSystem.Services;
 
@@ -7,23 +8,67 @@ namespace WinSystem.ViewModels
     public class DashboardViewModel : ViewModelBase
     {
         private readonly DataService _data;
+        private string _scheduleSummary = "";
+
+        /// <summary>由 MainViewModel 注入：点击日程卡片中的某条日程时跳转到日程管理模块并定位。</summary>
+        public Action<SysSchedule>? OpenSchedule { get; set; }
 
         public DashboardViewModel()
         {
             _data = Session.Data;
-            BuildStats();
-            BuildMonthlyRevenue();
-            BuildCategoryDistribution();
+            OpenScheduleCommand = new RelayCommand(o => { if (o is SysSchedule s) OpenSchedule?.Invoke(s); });
+            _ = ReloadAsync();
         }
 
-        public ObservableCollection<StatCard> StatCards { get; } = new();
-        public ObservableCollection<MonthlyBar> MonthlyBars { get; } = new();
-        public ObservableCollection<CategoryBar> CategoryBars { get; } = new();
-        public ObservableCollection<Order> RecentOrders { get; } = new();
+        /// <summary>点击「近 3 天日程」卡片，跳转日程管理模块。</summary>
+        public RelayCommand OpenScheduleCommand { get; }
 
         public string Greeting { get; } =
             $"{TimeGreeting()}，{Session.CurrentUser?.Name ?? "管理员"}";
         public string GreetingSub => $"今天是 {DateTime.Now:yyyy年M月d日 dddd}，祝您工作顺利！";
+
+        /// <summary>近 3 天（含今天）的日程列表。</summary>
+        public ObservableCollection<SysSchedule> RecentSchedules { get; } = new();
+
+        /// <summary>近 3 天日程统计摘要文字。</summary>
+        public string ScheduleSummary
+        {
+            get => _scheduleSummary;
+            private set => SetProperty(ref _scheduleSummary, value);
+        }
+
+        /// <summary>从 API 拉取日程并重建近 3 天统计（每次激活工作台时调用）。</summary>
+        public async Task ReloadAsync()
+        {
+            try
+            {
+                await _data.LoadSchedulesAsync();
+            }
+            catch
+            {
+                // 加载失败时忽略，工作台展示空列表
+            }
+            BuildSchedules();
+        }
+
+        private void BuildSchedules()
+        {
+            var today = DateTime.Today;
+            var list = _data.Schedules
+                .Where(s => s.ScheduleDate >= today && s.ScheduleDate < today.AddDays(3))
+                .OrderBy(s => s.ScheduleDate)
+                .ThenBy(s => s.StartTime)
+                .ToList();
+
+            RecentSchedules.Clear();
+            foreach (var s in list) RecentSchedules.Add(s);
+
+            var todayCount = list.Count(s => s.ScheduleDate.Date == today);
+            var pendingCount = list.Count(s => s.IsCompleted == 0);
+            ScheduleSummary = list.Count == 0
+                ? "近 3 天暂无日程安排"
+                : $"共 {list.Count} 条（今天 {todayCount} 条，未完成 {pendingCount} 条）";
+        }
 
         private static string TimeGreeting()
         {
@@ -33,100 +78,6 @@ namespace WinSystem.ViewModels
             if (h < 14) return "中午好";
             if (h < 18) return "下午好";
             return "晚上好";
-        }
-
-        private void BuildStats()
-        {
-            var users = _data.Users;
-            var products = _data.Products;
-            var orders = _data.Orders;
-
-            var today = DateTime.Today;
-            var todayOrders = orders.Count(o => o.CreatedAt >= today);
-            var pendingOrders = orders.Count(o => o.Status.Contains("待"));
-            var completedOrders = orders.Count(o => o.Status == "已完成");
-            var revenue = orders.Where(o => o.Status == "已完成").Sum(o => o.Amount);
-            var lowStock = products.Count(p => p.Enabled && p.Stock <= 60);
-
-            StatCards.Add(new StatCard
-            {
-                Title = "用户总数", Value = users.Count.ToString(), IconData = Icons.Users,
-                IconBrush = "PrimaryBrush", PanelBrush = "PanelBlueBrush",
-                DeltaText = $"近一月新增 {users.Count(u => u.CreatedAt >= today.AddDays(-30))} 人", DeltaBrush = "PrimaryDarkBrush"
-            });
-            StatCards.Add(new StatCard
-            {
-                Title = "商品总数", Value = products.Count.ToString(), IconData = Icons.Box,
-                IconBrush = "SuccessBrush", PanelBrush = "PanelGreenBrush",
-                DeltaText = $"{lowStock} 款商品库存偏低", DeltaBrush = lowStock > 0 ? "WarningBrush" : "SuccessBrush",
-                DeltaIcon = lowStock > 0 ? "!" : "↑"
-            });
-            StatCards.Add(new StatCard
-            {
-                Title = "订单总数", Value = orders.Count.ToString(), IconData = Icons.Cart,
-                IconBrush = "WarningBrush", PanelBrush = "PanelOrangeBrush",
-                DeltaText = $"今日新增 {todayOrders} 单 | 待处理 {pendingOrders} 单", DeltaBrush = "WarningBrush"
-            });
-            StatCards.Add(new StatCard
-            {
-                Title = "累计营收", Value = "¥" + revenue.ToString("N0"), IconData = Icons.Money,
-                IconBrush = "DangerBrush", PanelBrush = "PanelRedBrush",
-                DeltaText = $"已完成 {completedOrders} 单", DeltaBrush = "DangerBrush", DeltaIcon = "¥"
-            });
-
-            foreach (var order in orders.OrderByDescending(o => o.CreatedAt).Take(6))
-                RecentOrders.Add(order);
-        }
-
-        private void BuildMonthlyRevenue()
-        {
-            var orders = _data.Orders;
-            var colors = new[] { "#4F7CFF", "#5B8CFF", "#6E5BFF", "#22C55E", "#F59E0B", "#06B6D4" };
-            var raw = new List<(string Label, double Value, string Display)>();
-
-            for (var i = 5; i >= 0; i--)
-            {
-                var month = DateTime.Today.AddMonths(-i);
-                var monthRevenue = (double)orders
-                    .Where(o => o.Status == "已完成" && o.CreatedAt.Year == month.Year && o.CreatedAt.Month == month.Month)
-                    .Sum(o => o.Amount);
-                raw.Add((month.ToString("M月"), monthRevenue,
-                    monthRevenue >= 10000 ? (monthRevenue / 10000.0).ToString("0.0") + "万" : monthRevenue.ToString("0")));
-            }
-
-            var max = Math.Max(raw.Max(r => r.Value), 1);
-            for (var i = 0; i < raw.Count; i++)
-                MonthlyBars.Add(new MonthlyBar
-                {
-                    Label = raw[i].Label,
-                    Display = raw[i].Display,
-                    Brush = colors[i],
-                    Height = Math.Max(8, raw[i].Value / max * 170)
-                });
-        }
-
-        private void BuildCategoryDistribution()
-        {
-            var groups = _data.Products
-                .Where(p => p.Enabled)
-                .GroupBy(p => p.Category)
-                .Select(g => new { Name = g.Key, Count = g.Count() })
-                .OrderByDescending(g => g.Count)
-                .ToList();
-
-            var total = Math.Max(groups.Sum(g => g.Count), 1);
-            var palette = new[] { "#4F7CFF", "#22C55E", "#F59E0B", "#06B6D4", "#8B5CF6", "#EC4899" };
-            var idx = 0;
-            foreach (var g in groups)
-            {
-                CategoryBars.Add(new CategoryBar
-                {
-                    Name = g.Name,
-                    Count = g.Count,
-                    Percent = Math.Round(g.Count * 100.0 / total, 1),
-                    Brush = palette[idx++ % palette.Length]
-                });
-            }
         }
 
         // 图标 Path 几何数据

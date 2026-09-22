@@ -103,6 +103,14 @@ namespace WinSystem.ViewModels
             RefreshDaySchedules();
         }
 
+        /// <summary>跳转到指定日期：切换月份并高亮选中该日（供工作台点击日程直达）。</summary>
+        public void NavigateTo(DateTime date)
+        {
+            var d = date.Date;
+            Month = new DateTime(d.Year, d.Month, 1);
+            SelectDate(d);
+        }
+
         /// <summary>构建当前月 42 格（6 周，周一起始），并填充各日日程。</summary>
         private void RebuildCalendar()
         {
