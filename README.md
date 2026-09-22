@@ -183,9 +183,3 @@ dotnet run
 本项目以 [MIT](LICENSE) 许可证开源。
 
 ---
-
-<p align="center">
-  <a href="https://github.com/ceamky/winsystem">项目主页</a> ·
-  <a href="website/index.html">项目介绍</a> ·
-  <a href="SECURITY_AUDIT_REPORT.md">安全审计报告</a>
-</p>
