@@ -5,7 +5,7 @@ WinSystem 是一款基于 **WPF (MVVM) + ASP.NET Core WebAPI + MySQL** 的企业
 以现代化界面与纵深防御设计，为企业提供统一、可信的管理中枢。
 
 ## ✨ 功能亮点
-
+<img src="https://github.com/emptycell-cloud/winsystem/blob/main/backups/ScreenShot_2026-09-23_164727_741.png"></img>
 <div align="center">
 
 | 模块 | 说明 |
@@ -37,8 +37,6 @@ WinSystem 已完成四轮安全审计与加固，覆盖如下能力：
 - **越权防护**：改密身份取自 JWT（忽略客户端传入 ID）；非管理员仅可操作本人日程与查看本人资料
 - **数据过度暴露控制**：用户列表 / 搜索 / 消息列表仅管理员可见；消息详情按角色可见性过滤
 - **操作审计**：创建 / 修改 / 删除及登录动作自动写入 `sys_operation_log`，保存修改前后快照（中文可读）
-
-> 详细审计记录见 [SECURITY_AUDIT_REPORT.md](SECURITY_AUDIT_REPORT.md)。
 
 ## 🧱 技术架构
 
