@@ -81,7 +81,7 @@ winsystem/
 │   └── appsettings.json        # 连接串、JWT 配置（不含密钥）
 ├── website/                    # 项目介绍静态页面
 ├── backups/                    # 数据库备份（按时间戳命名）
-└── SECURITY_AUDIT_REPORT.md    # 安全审计修复报告
+└── readme.md                   # 项目介绍
 ```
 
 ## 🚀 快速开始
